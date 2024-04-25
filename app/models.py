@@ -88,7 +88,7 @@ class Dream(db.Model):
     exclusivity = db.Column(Enum(Exclusivity), default=Exclusivity.PRIVATE)
     sleep_start = db.Column(db.String)
     sleep_end = db.Column(db.String)
-    keywords = db.Column(ARRAY(db.String), index=True)
+    #keywords = db.Column(ARRAY(db.String), index=True)
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     author = db.relationship('User', back_populates='dreams')
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
