@@ -1,8 +1,8 @@
 import secrets
 from . import db
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import ARRAY
 
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from werkzeug.security import generate_password_hash, check_password_hash
 import enum

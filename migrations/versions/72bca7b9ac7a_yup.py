@@ -1,8 +1,8 @@
 """Yup
 
-Revision ID: 1c5dc12d7c6b
+Revision ID: 72bca7b9ac7a
 Revises: 
-Create Date: 2024-04-25 10:53:48.305951
+Create Date: 2024-04-25 11:30:47.298641
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1c5dc12d7c6b'
+revision = '72bca7b9ac7a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,10 +24,12 @@ def upgrade():
     sa.Column('exclusivity', sa.Enum('PUBLIC', 'EXCLUSIVE', 'PRIVATE', name='exclusivity'), nullable=True),
     sa.Column('sleep_start', sa.String(), nullable=True),
     sa.Column('sleep_end', sa.String(), nullable=True),
+    sa.Column('keywords', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('log_date', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('dream', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_dream_keywords'), ['keywords'], unique=False)
         batch_op.create_index(batch_op.f('ix_dream_log_date'), ['log_date'], unique=False)
 
     op.create_table('user',
@@ -78,6 +80,7 @@ def downgrade():
     op.drop_table('user')
     with op.batch_alter_table('dream', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_dream_log_date'))
+        batch_op.drop_index(batch_op.f('ix_dream_keywords'))
 
     op.drop_table('dream')
     # ### end Alembic commands ###
