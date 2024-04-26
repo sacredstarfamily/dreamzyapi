@@ -126,6 +126,8 @@ class Dream(db.Model):
             'dream': self.dream,
             'isPublic': self.exclusivity.name,
             'dream_date': self.log_date,
+            'sleepStart': self.sleep_start,
+            'sleepEnd': self.sleep_end,
             'user_id': self.user_id,
             'keywords': [keyword for keyword in self.keywords],
             'author': self.author.to_dict(),
