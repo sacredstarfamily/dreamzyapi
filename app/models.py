@@ -1,4 +1,6 @@
 import secrets
+
+from flask import jsonify
 from . import db
 from datetime import datetime, timezone, timedelta
 
@@ -19,9 +21,10 @@ class User(db.Model):
     username = db.Column(db.String, index=True, unique=True)
     password = db.Column(db.String(528))
     location = db.Column(db.String(64), nullable=True)
-    token = db.Column(db.String(32), index=True, unique=True)
-    token_expiration = db.Column(db.DateTime)
+    token = db.Column(db.String, index=True, unique=True)
+    token_expiration = db.Column(db.DateTime(timezone=True))
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
+    allowed_dreams = db.relationship('Dream', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
     
     def __init__(self, **kwargs):
@@ -32,11 +35,11 @@ class User(db.Model):
         return f"<User {self.username}>"
 
     def __set_password(self, plaintext_password):
-        self.password_hash = generate_password_hash(plaintext_password)
+        self.password = generate_password_hash(plaintext_password)
         self.save()
         
     def check_password(self, plaintext_password):
-        return check_password_hash(self.password_hash, plaintext_password)
+        return check_password_hash(self.password, plaintext_password)
     
     def save(self):
         db.session.add(self)
@@ -55,12 +58,12 @@ class User(db.Model):
 
     def get_token(self):
         now = datetime.now(timezone.utc)
-        if self.token and self.token_expiration > now + timedelta(seconds=60):
-            return self.token
+        if self.token and self.token_expiration > now + timedelta(minutes=1):
+            return {"token": self.token, "tokenExpiration": self.token_expiration}
         self.token = secrets.token_hex(16)
-        self.token_expiration = now + timedelta(seconds=3600)
-        db.session.commit()
-        return self.token
+        self.token_expiration = now + timedelta(hours=1)
+        self.save()
+        return {"token": self.token, "tokenExpiration": self.token_expiration}
 
     def revoke_token(self):
         self.token_expiration = datetime.now(timezone.utc) - timedelta(seconds=1)
@@ -90,7 +93,10 @@ class Dream(db.Model):
     sleep_end = db.Column(db.String)
     keywords = db.Column(ARRAY(db.String), index=True)
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    likes = db.Column(db.Integer, default=0)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship('User', back_populates='dreams')
+    allowed_user = db.relationship('User', back_populates='allowed_dreams') 
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -102,7 +108,14 @@ class Dream(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
-    
+        
+    def update(self, **kwargs):
+        allowed_fields = {'dream', 'exclusivity', 'sleep_start', 'sleep_end', 'keywords', 'allowed_user'}
+        for attr, value in kwargs.items():
+            if attr in allowed_fields:
+                setattr(self, attr, value)
+        self.save()
+        
     def delete(self):
         db.session.delete(self)
         db.session.commit()
@@ -111,9 +124,10 @@ class Dream(db.Model):
         data = {
             'id': self.id,
             'dream': self.dream,
-            'isPublic': self.exclusivity,
-            'dream_date': self.dream_date,
-            'user_id': self.user_id
+            'isPublic': self.exclusivity.name,
+            'dream_date': self.log_date,
+            'user_id': self.user_id,
+            'interpretations': [interpretation.to_dict() for interpretation in self.interpretations]
         }
         return data
 
