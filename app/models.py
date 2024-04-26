@@ -128,6 +128,7 @@ class Dream(db.Model):
             'dream_date': self.log_date,
             'user_id': self.user_id,
             'keywords': [keyword for keyword in self.keywords],
+            'author': self.author.to_dict(),
             'interpretations': [interpretation.to_dict() for interpretation in self.interpretations]
         }
         return data
@@ -140,7 +141,7 @@ class Interpretation(db.Model):
     exclusivity = db.Column(Enum(Exclusivity), default=Exclusivity.PUBLIC)
     dream = db.relationship('Dream', back_populates='interpretations')
     interpreter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    interpreter = db.relationship('User')
+    interpreter = db.relationship('User', back_populates='interpretations')
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
