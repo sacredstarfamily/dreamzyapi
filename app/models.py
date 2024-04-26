@@ -127,6 +127,7 @@ class Dream(db.Model):
             'isPublic': self.exclusivity.name,
             'dream_date': self.log_date,
             'user_id': self.user_id,
+            'keywords': [keyword for keyword in self.keywords],
             'interpretations': [interpretation.to_dict() for interpretation in self.interpretations]
         }
         return data
