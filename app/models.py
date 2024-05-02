@@ -26,7 +26,7 @@ class User(db.Model):
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
     allowed_dreams = db.relationship('Dream', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
-    user_likes = db.relationship('Dream', back_populates='who_liked' cascade='all,delete')
+    user_likes = db.relationship('Dream', back_populates='who_liked', cascade='all,delete')
     sent_messages = db.relationship('Message', back_populates='sender', cascade='all,delete', foreign_keys='Message.sender_id')
     recieved_messages = db.relationship('Message', back_populates='recipient', cascade='all,delete', foreign_keys='Message.recipient_id')
     def __init__(self, **kwargs):
