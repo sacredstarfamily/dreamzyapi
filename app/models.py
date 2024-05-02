@@ -26,7 +26,9 @@ class User(db.Model):
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
     allowed_dreams = db.relationship('Dream', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
-    
+    user_likes = db.relationship('Dream', back_populates='who_liked' cascade='all,delete')
+    sent_messages = db.relationship('Message', back_populates='sender', cascade='all,delete', foreign_keys='Message.sender_id')
+    recieved_messages = db.relationship('Message', back_populates='recipient', cascade='all,delete', foreign_keys='Message.recipient_id')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__set_password(kwargs.get('password', ''))
@@ -76,14 +78,13 @@ class User(db.Model):
         return user
     
     def to_dict(self):
-        data = {
+        return {
             'id': self.id,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'username': self.username
+            'username': self.username,
         }
-        return data
     
 class Dream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -97,13 +98,14 @@ class Dream(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship('User', back_populates='dreams')
     allowed_user = db.relationship('User', back_populates='allowed_dreams') 
+    who_liked = db.relationship('User', back_populates='user_likes')
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.save()
         
     def __repr__(self):
-        return '<Dream {}>'.format(self.dream)
+        return f'<Dream {self.dream}>'
     
     def save(self):
         db.session.add(self)
@@ -121,7 +123,7 @@ class Dream(db.Model):
         db.session.commit()
         
     def to_dict(self):
-        data = {
+        return {
             'id': self.id,
             'dream': self.dream,
             'isPublic': self.exclusivity.name,
@@ -129,11 +131,15 @@ class Dream(db.Model):
             'sleepStart': self.sleep_start,
             'sleepEnd': self.sleep_end,
             'user_id': self.user_id,
-            'keywords': [keyword for keyword in self.keywords],
+            'keywords': list(self.keywords),
             'author': self.author.to_dict(),
-            'interpretations': [interpretation.to_dict() for interpretation in self.interpretations]
+            'likes': self.likes,
+            'who_liked': [user.to_dict() for user in self.who_liked],
+            'allowed_user': [user.to_dict() for user in self.allowed_user],
+            'interpretations': [
+                interpretation.to_dict() for interpretation in self.interpretations
+            ],
         }
-        return data
 
 class Interpretation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -150,7 +156,7 @@ class Interpretation(db.Model):
         self.save()
         
     def __repr__(self):
-        return '<Interpretation {}>'.format(self.interpretation)
+        return f'<Interpretation {self.interpretation}>'
     
     def save(self):
         db.session.add(self)
@@ -161,11 +167,42 @@ class Interpretation(db.Model):
         db.session.commit()
         
     def to_dict(self):
-        data = {
+        return {
             'id': self.id,
             'interpretation': self.interpretation,
             'log_date': self.log_date,
             'dream_id': self.dream_id,
-            'interpreter_id': self.interpreter_id
+            'interpreter_id': self.interpreter_id,
         }
-        return data
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    message = db.Column(db.String(6000))
+    log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], back_populates='received_messages')
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.save()
+        
+    def __repr__(self):
+        return f'<Message {self.message}>'
+    
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+        
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'sender_id': self.sender_id,
+            'recipient_id': self.recipient_id,
+            'message': self.message,
+            'log_date': self.log_date,
+        }
