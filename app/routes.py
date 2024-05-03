@@ -2,7 +2,7 @@ from flask import jsonify, abort, render_template, request
 
 from . import app, db
 #from data.tasklist import tasks_list
-from .models import User, Dream, Interpretation, Exclusivity
+from .models import User, Dream, Interpretation, Exclusivity, Message
 from .auth import basic_auth, token_auth
 from sqlalchemy import and_
 @app.route('/')
@@ -158,6 +158,17 @@ def update_interpretation(interpretation_id):
     interpretation.update(**data)
     return interpretation.to_dict()
 
+@app.route('/users/<int:user_id>/messages')
+@token_auth.login_required
+def getMessages(user_id):
+    current_user = token_auth.current_user()
+    user = db.session.execute(db.select(User).where(User.id == user_id)).scalar_one_or_none()
+    if user is None:
+        return {'error': 'User not found'}, 404
+    if current_user.id == user.id:
+        return {'error': 'You cannot send messages to yourself'}, 403
+    messages = db.session.execute(db.select(Message).where(Message.sender_id == current_user.id, Message.receiver_id == user.id)).scalars().all()
+    return {'message': [message.to_dict() for message in messages]}
 
 
 
