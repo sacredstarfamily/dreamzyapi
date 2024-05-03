@@ -2,7 +2,7 @@ from flask import jsonify, abort, render_template, request
 
 from . import app, db
 #from data.tasklist import tasks_list
-from .models import User, Dream, Interpretation, Exclusivity, Message
+from .models import User, Dream, Interpretation, Exclusivity
 from .auth import basic_auth, token_auth
 from sqlalchemy import and_
 @app.route('/')
@@ -158,13 +158,6 @@ def update_interpretation(interpretation_id):
     interpretation.update(**data)
     return interpretation.to_dict()
 
-@app.route('/users/<int:user_id>/messages')
-@token_auth.login_required
-def read_messages(user_id):
-    current_user = token_auth.current_user()
-    if current_user.id != user_id:
-        return {'error': 'You are not authorized to read messages for this user'}, 403
-    messages = db.session.execute(db.select(Message.id, Message.message, Message.sender_id, Message.recipient_id, Message.log_date).where(Message.recipient_id == user_id | Message.sender_id == user_id)).scalars().all()
-    return {'messages': [message.to_dict() for message in messages]}
+
 
 

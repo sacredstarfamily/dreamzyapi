@@ -27,8 +27,7 @@ class User(db.Model):
     allowed_dreams = db.relationship('Dream', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
     user_likes = db.relationship('Dream', back_populates='who_liked', cascade='all,delete')
-    sent_messages = db.relationship('Message', cascade='all,delete')
-    recieved_messages = db.relationship('Message',  cascade='all,delete')
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__set_password(kwargs.get('password', ''))
@@ -173,37 +172,4 @@ class Interpretation(db.Model):
             'log_date': self.log_date,
             'dream_id': self.dream_id,
             'interpreter_id': self.interpreter_id,
-        }
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer)
-    recipient_id = db.Column(db.Integer)
-    message = db.Column(db.String(6000))
-    log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
-    sender = db.relationship('User', back_populates='sent_messages')
-    recipient = db.relationship('User', back_populates='recieved_messages')
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.save()
-        
-    def __repr__(self):
-        return f'<Message {self.message}>'
-    
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-    
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-        
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'sender_id': self.sender_id,
-            'recipient_id': self.recipient_id,
-            'message': self.message,
-            'log_date': self.log_date,
         }
