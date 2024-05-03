@@ -134,7 +134,7 @@ class Dream(db.Model):
             'author': self.author.to_dict(),
             'likes': self.likes,
             'who_liked': self.who_liked,
-            'allowed_user': [user.to_dict() for user in self.allowed_user],
+            'allowed_user':  self.allowed_user,
             'interpretations': [
                 interpretation.to_dict() for interpretation in self.interpretations
             ],
