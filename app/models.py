@@ -173,3 +173,35 @@ class Interpretation(db.Model):
             'dream_id': self.dream_id,
             'interpreter_id': self.interpreter_id,
         }
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(6000))
+    log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    sender = db.relationship('User', foreign_keys=[sender_id])
+    receiver = db.relationship('User', foreign_keys=[receiver_id])
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.save()
+        
+    def __repr__(self):
+        return f'<Message {self.message}>'
+    
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+        
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'message': self.message,
+            'log_date': self.log_date,
+            'sender_id': self.sender_id,
+            'receiver_id': self.receiver_id,
+        }
