@@ -96,7 +96,7 @@ class Dream(db.Model):
     likes = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship('User', back_populates='dreams')
-    allowed_user = db.relationship('User', back_populates='allowed_dreams') 
+    allowed_user = db.relationship('User', back_populates='allowed_dreams', overlaps="author,dreams,user_likes") 
     who_liked = db.relationship('User', back_populates='user_likes', overlaps="allowed_dreams,allowed_user,author,dreams")
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
     def __init__(self, **kwargs):
