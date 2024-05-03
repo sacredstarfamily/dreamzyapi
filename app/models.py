@@ -26,7 +26,7 @@ class User(db.Model):
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
     allowed_dreams = db.relationship('Dream',overlaps='dreams', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
-    user_likes = db.relationship('Dream', back_populates='who_liked', cascade='all,delete')
+    user_likes = db.relationship('Dream', back_populates='who_liked',overlaps="allowed_dreams,dreams", cascade='all,delete')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -95,7 +95,7 @@ class Dream(db.Model):
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     likes = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    author = db.relationship('User', back_populates='dreams')
+    author = db.relationship('User', back_populates='dreams', overlaps="allowed_dreams,user_likes")
     allowed_user = db.relationship('User', back_populates='allowed_dreams', overlaps="author,dreams,user_likes") 
     who_liked = db.relationship('User', back_populates='user_likes', overlaps="allowed_dreams,allowed_user,author,dreams")
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
