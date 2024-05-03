@@ -176,8 +176,8 @@ class Interpretation(db.Model):
         }
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    sender_id = db.Column(db.Integer)
+    recipient_id = db.Column(db.Integer)
     message = db.Column(db.String(6000))
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     sender = db.relationship('User',  back_populates='sent_messages')
