@@ -182,7 +182,8 @@ class Message(db.Model):
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     sender = db.relationship('User',  back_populates='sent_messages')
     recipient = db.relationship('User',  back_populates='received_messages')
-    
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.save()
