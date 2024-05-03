@@ -180,8 +180,8 @@ class Message(db.Model):
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     message = db.Column(db.String(6000))
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
-    sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sent_messages')
-    recipient = db.relationship('User', foreign_keys=[recipient_id], back_populates='received_messages')
+    sender = db.relationship('User',  back_populates='sent_messages')
+    recipient = db.relationship('User',  back_populates='received_messages')
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
