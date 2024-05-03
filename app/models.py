@@ -27,8 +27,8 @@ class User(db.Model):
     allowed_dreams = db.relationship('Dream', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
     user_likes = db.relationship('Dream', back_populates='who_liked', cascade='all,delete')
-    sent_messages = db.relationship('Message', back_populates='sender', cascade='all,delete', foreign_keys='Message.sender_id')
-    recieved_messages = db.relationship('Message', back_populates='recipient', cascade='all,delete', foreign_keys='Message.recipient_id')
+    sent_messages = db.relationship('Message', cascade='all,delete')
+    recieved_messages = db.relationship('Message',  cascade='all,delete')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__set_password(kwargs.get('password', ''))
@@ -180,8 +180,8 @@ class Message(db.Model):
     recipient_id = db.Column(db.Integer)
     message = db.Column(db.String(6000))
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
-    sender = db.relationship('User',  back_populates='sent_messages')
-    recipient = db.relationship('User',  back_populates='received_messages')
+    sender = db.relationship('User', back_populates='sent_messages')
+    recipient = db.relationship('User', back_populates='recieved_messages')
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     def __init__(self, **kwargs):
