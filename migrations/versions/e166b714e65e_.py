@@ -1,8 +1,8 @@
-"""yup
+"""empty message
 
-Revision ID: 9fd90a407cf8
+Revision ID: e166b714e65e
 Revises: 
-Create Date: 2024-04-25 17:05:18.765672
+Create Date: 2024-05-03 21:20:08.323649
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9fd90a407cf8'
+revision = 'e166b714e65e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,8 +26,8 @@ def upgrade():
     sa.Column('username', sa.String(), nullable=True),
     sa.Column('password', sa.String(length=528), nullable=True),
     sa.Column('location', sa.String(length=64), nullable=True),
-    sa.Column('token', sa.String(length=32), nullable=True),
-    sa.Column('token_expiration', sa.DateTime(), nullable=True),
+    sa.Column('token', sa.String(), nullable=True),
+    sa.Column('token_expiration', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('user', schema=None) as batch_op:
@@ -43,6 +43,7 @@ def upgrade():
     sa.Column('sleep_end', sa.String(), nullable=True),
     sa.Column('keywords', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('log_date', sa.DateTime(), nullable=True),
+    sa.Column('likes', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -50,6 +51,19 @@ def upgrade():
     with op.batch_alter_table('dream', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_dream_keywords'), ['keywords'], unique=False)
         batch_op.create_index(batch_op.f('ix_dream_log_date'), ['log_date'], unique=False)
+
+    op.create_table('message',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('message', sa.String(length=6000), nullable=True),
+    sa.Column('log_date', sa.DateTime(), nullable=True),
+    sa.Column('sender_id', sa.Integer(), nullable=True),
+    sa.Column('receiver_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['receiver_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['sender_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('message', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_message_log_date'), ['log_date'], unique=False)
 
     op.create_table('interpretation',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -74,6 +88,10 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_interpretation_log_date'))
 
     op.drop_table('interpretation')
+    with op.batch_alter_table('message', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_message_log_date'))
+
+    op.drop_table('message')
     with op.batch_alter_table('dream', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_dream_log_date'))
         batch_op.drop_index(batch_op.f('ix_dream_keywords'))
