@@ -26,7 +26,6 @@ class User(db.Model):
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
     allowed_dreams = db.relationship('Dream',overlaps='dreams', back_populates='allowed_user')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
-    user_likes = db.relationship('Dream', back_populates='who_liked',overlaps="allowed_dreams,dreams", cascade='all,delete')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
