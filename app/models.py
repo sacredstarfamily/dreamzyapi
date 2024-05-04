@@ -95,7 +95,6 @@ class Dream(db.Model):
     log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     likes = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    who_liked = db.relationship('User', back_populates='user_likes')
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
