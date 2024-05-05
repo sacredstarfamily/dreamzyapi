@@ -95,7 +95,7 @@ class Dream(db.Model):
     likes = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
-    
+    author = db.relationship('User', back_populates='dreams')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.save()
