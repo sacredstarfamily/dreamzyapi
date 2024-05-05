@@ -131,7 +131,7 @@ class Dream(db.Model):
             'keywords': list(self.keywords),
             'author': self.author.to_dict(),
             'likes': self.likes,
-            'who_liked': self.who_liked,
+            'who_liked': self.who_liked.to_dict() if self.who_liked else None,
             'interpretations': [
                 interpretation.to_dict() for interpretation in self.interpretations
             ],
