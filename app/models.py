@@ -24,7 +24,7 @@ class User(db.Model):
     token = db.Column(db.String, index=True, unique=True)
     token_expiration = db.Column(db.DateTime(timezone=True))
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
-    liked_dreams = db.relationship('Dream', back_populates='who_liked')
+   
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
 
     def __init__(self, **kwargs):
@@ -96,7 +96,7 @@ class Dream(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
     author = db.relationship('User', back_populates='dreams')
-    who_liked = db.relationship('User', back_populates='liked_dreams')
+    who_liked = db.Column(ARRAY(db.String), default=[])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.save()
