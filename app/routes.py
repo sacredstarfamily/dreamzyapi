@@ -123,6 +123,25 @@ def get_dreams():
     dreams = db.session.execute(select_stmt).scalars().all()
     return [dream.to_dict() for dream in dreams]
 
+@app.route('/getdreamz/<int:dream_id>')
+@token_auth.login_required
+def get_dream(dream_id):
+    dream = db.session.execute(db.select(Dream).where(and_(Dream.id == dream_id, Dream.exclusivity == Exclusivity.PUBLIC))).scalar_one_or_none()
+    if dream is None:
+        return {'error': 'Dream not found'}, 404
+    return dream.to_dict()
+
+@app.route('/getdreamz/<int:dream_id>/sendlike', methods=['POST'])
+@token_auth.login_required
+def send_like(dream_id):
+    current_user = token_auth.current_user()
+    dream = db.session.execute(db.select(Dream).where(Dream.id == dream_id)).scalar_one_or_none()
+    if dream is None:
+        return {'error': 'Dream not found'}, 404
+    dream.likes += 1
+    dream.who_liked.append(current_user)
+    return dream.to_dict()
+
 @app.route('/interpretations', methods=['POST'])
 @token_auth.login_required
 def create_interpretation():
