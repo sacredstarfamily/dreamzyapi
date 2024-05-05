@@ -139,7 +139,7 @@ def send_like(dream_id):
     if dream is None:
         return {'error': 'Dream not found'}, 404
     dream.likes += 1
-    dream.who_liked.append(current_user)
+    dream.update(who_like=current_user)  
     return dream.to_dict()
 
 @app.route('/interpretations', methods=['POST'])

@@ -109,7 +109,7 @@ class Dream(db.Model):
         db.session.commit()
         
     def update(self, **kwargs):
-        allowed_fields = {'dream', 'exclusivity', 'sleep_start', 'sleep_end', 'keywords', 'allowed_user'}
+        allowed_fields = {'dream', 'exclusivity', 'sleep_start', 'sleep_end', 'keywords', 'allowed_user','who_liked','likes'}
         for attr, value in kwargs.items():
             if attr in allowed_fields:
                 setattr(self, attr, value)
