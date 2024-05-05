@@ -25,7 +25,7 @@ class User(db.Model):
     token_expiration = db.Column(db.DateTime(timezone=True))
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
-    liked_dreams = db.Column(ARRAY(db.Integer))
+    liked_dreams = db.Column(ARRAY(db.Integer), default=[])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__set_password(kwargs.get('password', ''))
