@@ -24,7 +24,7 @@ class User(db.Model):
     token = db.Column(db.String, index=True, unique=True)
     token_expiration = db.Column(db.DateTime(timezone=True))
     dreams = db.relationship('Dream', back_populates='author', cascade='all,delete')
-    liked_dreams = db.relationship('Dream', secondary='likes', back_populates='who_liked')
+    liked_dreams = db.relationship('Dream', back_populates='who_liked')
     interpretations = db.relationship('Interpretation', back_populates='interpreter', cascade='all,delete')
 
     def __init__(self, **kwargs):
