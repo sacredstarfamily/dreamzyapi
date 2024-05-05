@@ -140,6 +140,8 @@ def send_like(dream_id):
         return {'error': 'Dream not found'}, 404
     dream.likes += 1
     dream.who_liked = dream.who_liked + [current_user.username]
+    current_user.liked_dreams = current_user.liked_dreams + [dream.id]
+    current_user.save()
     dream.save()
     return dream.to_dict()
 
