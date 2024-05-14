@@ -5,6 +5,7 @@ from . import app, db
 from .models import User, Dream, Interpretation, Exclusivity, Message
 from .auth import basic_auth, token_auth
 from sqlalchemy import and_
+from sqlalchemy import or_
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -180,17 +181,32 @@ def update_interpretation(interpretation_id):
     interpretation.update(**data)
     return interpretation.to_dict()
 
-@app.route('/users/<int:user_id>/messages')
+@app.route('/users/messages/<int:user_id>', methods=['POST'])
+@token_auth.login_required
+def sendMessage(user_id):
+    if not request.is_json:
+        return {'error': 'Your content-type must be application/json'}, 400
+    data = request.json
+    current_user = token_auth.current_user()
+    user = db.session.execute(db.select(User).where(User.id == user_id)).scalar_one_or_none()
+    if user is None:
+        return {'error': 'User not found'}, 404
+    if current_user.id != user.id:
+        return {'error': 'cannot send messages'}, 403
+    new_message = Message(sender_id=current_user.id, receiver_id=data.get('messageTo'), message=data.get('message'))
+    return new_message.to_dict(), 201
+
+@app.route('/users/messages/<int:user_id>')
 @token_auth.login_required
 def getMessages(user_id):
     current_user = token_auth.current_user()
     user = db.session.execute(db.select(User).where(User.id == user_id)).scalar_one_or_none()
     if user is None:
         return {'error': 'User not found'}, 404
-    if current_user.id == user.id:
-        return {'error': 'You cannot send messages to yourself'}, 403
-    messages = db.session.execute(db.select(Message).where(Message.sender_id == current_user.id, Message.receiver_id == user.id)).scalars().all()
-    return {'message': [message.to_dict() for message in messages]}
+    if current_user.id != user.id:
+        return {'error': 'cannot send messages'}, 403
+    messages = db.session.execute(db.select(Message).where(or_(Message.sender_id == current_user.id, Message.receiver_id == current_user.id))).scalars().all()
+    return [message.to_dict() for message in messages]
 
 
 

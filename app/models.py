@@ -202,3 +202,33 @@ class Message(db.Model):
             'sender_id': self.sender_id,
             'receiver_id': self.receiver_id,
         }
+        
+class Friends(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    friend_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', foreign_keys=[user_id])
+    friend = db.relationship('User', foreign_keys=[friend_id])
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.save()
+        
+    def __repr__(self):
+        return f'<Friendship {self.user_id} - {self.friend_id}>'
+    
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+        
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'friend_id': self.friend_id,
+        }
+
