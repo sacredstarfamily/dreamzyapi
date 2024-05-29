@@ -193,13 +193,17 @@ class Message(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-        
+    def getSender(self):
+        return db.session.execute(db.select(User).where(User.id == self.sender_id)).scalar_one_or_none()
+       
     def to_dict(self):
+        sender = self.getSender()
         return {
             'id': self.id,
             'message': self.message,
             'log_date': self.log_date,
             'sender_id': self.sender_id,
+            'sender': sender.to_dict(),
             'receiver_id': self.receiver_id,
         }
         
@@ -224,7 +228,9 @@ class Friends(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-        
+    def getFriend(self):
+        return db.session.execute(db.select(User).where(User.id == self.friend_id)).scalar_one_or_none()
+
     def to_dict(self):
         return {
             'id': self.id,
