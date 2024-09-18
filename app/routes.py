@@ -2,7 +2,7 @@ from flask import jsonify, abort, render_template, request
 
 from . import app, db
 #from data.tasklist import tasks_list
-from .models import User, Dream, Interpretation, Exclusivity, Message
+from .models import User, Dream, Interpretation, Exclusivity, Message, Review
 from .auth import basic_auth, token_auth
 from sqlalchemy import and_
 from sqlalchemy import or_
@@ -207,6 +207,27 @@ def getMessages(user_id):
         return {'error': 'cannot send messages'}, 403
     messages = db.session.execute(db.select(Message).where(or_(Message.sender_id == current_user.id, Message.receiver_id == current_user.id))).scalars().all()
     return [message.to_dict() for message in messages]
+
+@app.route('/dreams/<int:dream_id>/reviews', methods=['POST'])
+@token_auth.login_required
+def add_review(dream_id):
+    current_user = token_auth.current_user()
+    dream = db.session.execute(db.select(Dream).where(Dream.id == dream_id)).scalar_one_or_none()
+    if dream is None:
+        return {'error': 'Dream not found'}, 404
+    
+    data = request.get_json()
+    if 'content' not in data or 'rating' not in data:
+        return {'error': 'Missing content or rating'}, 400
+    
+    review = Review(
+        content=data['content'],
+        rating=data['rating'],
+        user_id=current_user.id,
+        dream_id=dream_id
+    )
+    review.save()
+    return review.to_dict(), 201
 
 
 

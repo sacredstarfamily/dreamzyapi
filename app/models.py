@@ -18,6 +18,7 @@ class User(db.Model):
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, index=True, unique=True)
+    reviews = db.relationship('Review', back_populates='user', cascade='all,delete-orphan')
     username = db.Column(db.String, index=True, unique=True)
     password = db.Column(db.String(528))
     location = db.Column(db.String(64), nullable=True)
@@ -96,6 +97,7 @@ class Dream(db.Model):
     interpretations = db.relationship('Interpretation', back_populates='dream', cascade='all,delete')
     author = db.relationship('User', back_populates='dreams')
     who_liked = db.Column(ARRAY(db.String), default=[])
+    reviews = db.relationship('Review', back_populates='dream', cascade='all,delete-orphan')
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -236,5 +238,41 @@ class Friends(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'friend_id': self.friend_id,
+        }
+
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(1000), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    log_date = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    dream_id = db.Column(db.Integer, db.ForeignKey('dream.id'))
+    user = db.relationship('User', back_populates='reviews')
+    dream = db.relationship('Dream', back_populates='reviews')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.save()
+
+    def __repr__(self):
+        return f'<Review {self.id}>'
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'content': self.content,
+            'rating': self.rating,
+            'log_date': self.log_date.isoformat(),
+            'user_id': self.user_id,
+            'dream_id': self.dream_id
         }
 
